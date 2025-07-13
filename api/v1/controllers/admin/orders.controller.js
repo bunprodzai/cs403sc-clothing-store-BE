@@ -166,10 +166,27 @@ module.exports.changeStatus = async (req, res) => {
             await Product.updateOne({ _id: productId }, { sizeStock: updatedSizeStock, stock: productOld.stock - product.quantity });
           }
         }
-
+        await Order.updateOne({ code: code }, { status: status });
         res.json({
           code: 200,
           message: "Đơn hàng đã được hoàn thành"
+        });
+      } else {
+        // gửi opt qua email user
+        const subject = "Đơn hàng của bạn đã bị hủy, xin lỗi vì sự bất tiện này";
+
+        const html = `
+          <p>Cảm ơn bạn đã quan tâm đến cửa hàng chúng tôi!</p>
+          <p>Đơn hàng của bạn đã bị hủy. Nếu bạn có bất kỳ câu hỏi nào, xin vui lòng liên hệ với chúng tôi.</p>
+          <p>Trân trọng,<br/>Cửa hàng XYZ</p>
+          `;
+        sendMailHelper.sendMail(order.userInfo.email, subject, html);
+
+        await Order.updateOne({ code: code }, { status: status });
+
+        res.json({
+          code: 200,
+          message: "Đơn hàng đã được hủy"
         });
       }
 
@@ -179,9 +196,8 @@ module.exports.changeStatus = async (req, res) => {
         message: "Bạn không có quyền truy cập"
       });
     }
-  } catch (error) {
-    console.log(error);
 
+  } catch (error) {
     res.json({
       code: 400,
       message: "Lỗi params"

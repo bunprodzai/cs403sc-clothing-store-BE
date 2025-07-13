@@ -4,6 +4,8 @@ const Order = require("../../models/order.model");
 const User = require("../../models/users.model");
 const productHelper = require("../../../../helpers/products");
 const sendMailHelper = require("../../../../helpers/sendMail");
+const { getQuantityBySize } = require("../../../../helpers/getQuantityBySize");
+
 // [GET] /order/detail/:orderId
 module.exports.detailOrder = async (req, res) => {
   try {
@@ -11,17 +13,40 @@ module.exports.detailOrder = async (req, res) => {
 
     const recordsOrder = await Order.findOne({ code: code }).lean();
 
+    if(recordsOrder.status === "cancelled") {
+      return res.json({
+        code: 404,
+        message: "Đơn hàng đã bị huỷ, không thể thanh toán"
+      });
+    }
+
     if (recordsOrder.products.length > 0) {
       for (const item of recordsOrder.products) {
         const productId = item.product_id;
 
         const productInfo = await Product.findOne({ _id: productId, deleted: false, status: "active" }).select("title thumbnail price slug discountPercentage");
-
+        
+        // khi vào trang thanh toán thì kiểm tra xem sản phẩm còn hàng hay không
+        // const stockProduct = await Product.findOne({
+        //   _id: productId,
+        //   sizeStock: {
+        //     $elemMatch: { $regex: `^${item.size}-` } // ví dụ: "^S-" sẽ match "S-32"
+        //   }
+        // });
+       
+        // const quantityInventorye = getQuantityBySize(stockProduct.sizeStock, item.size);
+        
+        // if(quantityInventorye === 0){
+        //   return res.json({
+        //     code: 400,
+        //     message: `Sản phẩm ${productInfo.title} đã hết hàng, vui lòng chọn lại đơn hàng khác`
+        //   });
+        // }
+        
         productInfo.priceNew = ((productInfo.price * (100 - productInfo.discountPercentage)) / 100).toFixed(0);
         item.totalPrice = productInfo.priceNew * item.quantity;
 
         item.productInfo = productInfo;
-
       }
     }
 
