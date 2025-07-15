@@ -9,8 +9,11 @@ const settingRoute = require("./setting-general.route");
 const articleRoute = require("./article.route");
 const productCategoryRoute = require("./product-category.route");
 
-module.exports = (app) => {
+const connect = require("../../middlewares/client/connectMongo.middware");
 
+
+module.exports = (app) => {
+  app.use(connect.connectMongo);
 
   app.use(`/api/v1/cart`, cartRoute);
   app.use(`/api/v1/products`, productRoute);

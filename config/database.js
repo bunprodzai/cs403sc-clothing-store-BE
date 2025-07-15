@@ -28,16 +28,16 @@ if (!cached) {
 }
 
 module.exports.connect = async () => {
-  if (cached.conn) {
-    return cached.conn;
-  }
+  if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGO_URL, {
+    cached.promise = mongoose.connect(process.env.MONGO_URI, {
       bufferCommands: false,
       maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     }).then((mongoose) => {
-      console.log('✅ MongoDB connected (singleton)');
+      console.log('✅ MongoDB connected');
       return mongoose;
     });
   }

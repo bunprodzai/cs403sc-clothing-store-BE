@@ -27,7 +27,6 @@ module.exports.category = async (req, res) => {
   try {
     // dùng để tìm kiếm danh sách sản phẩm theo danh mục
     const slugCategory = req.params.slugCategory;
-    console.log(req.query);
     
     const category = await ProductCategory.findOne({
       slug: slugCategory,
@@ -63,7 +62,6 @@ module.exports.category = async (req, res) => {
       const [min, max] = priceParam.split('-');
       const minPrice = Number(min);
       const maxPrice = Number(max);
-
       if (minPrice === 0 && maxPrice === 0) {
         // Trường hợp "0-0" hoặc không có giá trị hợp lệ
       } else if (!isNaN(maxPrice) && minPrice === 0) {
@@ -91,7 +89,7 @@ module.exports.category = async (req, res) => {
       category: category
     });
   } catch (error) {
-    console.log("Loi");
+    console.log(error.message);
 
     res.json({
       code: 400,
